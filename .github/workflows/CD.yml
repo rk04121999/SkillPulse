@@ -1,26 +1,38 @@
-name: Ronak CD 
+name: Ronak CD
 
 on:
-    workflow_run:
-        workflows: ["Ronak Workflow"]
-        types: [completed]
+  workflow_run:
+    workflows: ["Ronak Workflow"]
+    types:
+      - completed
 
-jobs: 
-    deploy:
-        runs-on: ubuntu-latest
-        steps:
-            - uses : actions/checkout@v4
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
 
-            - name: execute remote SSH commands using password
-              uses: appleboy/ssh-action@v1
-              with:
-                host: ${{ secrets.HOST}}
-                username: ${{ secrets.EC2_USER }}
-                key: ${{ secrets.EC2_SSH_KEY }}
-                script: 
-                    git clone https://github.com/rk04121999/SkillPulse.git
-                    cd ~/SkillPulse
-                    git pull origin main
-                    docker compose pull
-                    docker compose up -d
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
+      - name: Execute remote SSH commands
+        uses: appleboy/ssh-action@v1.0.3
+
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.EC2_USER }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+
+          script: |
+            cd ~
+
+            if [ ! -d "SkillPulse" ]; then
+              git clone https://github.com/rk04121999/SkillPulse.git
+            fi
+
+            cd SkillPulse
+
+            git pull origin main
+
+            docker compose down || true
+            docker compose pull
+            docker compose up -d --build
