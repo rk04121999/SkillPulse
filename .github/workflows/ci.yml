@@ -1,4 +1,4 @@
-name: Ronak Workflow
+name: Ronak CI Workflow
 
 on: 
   push:
